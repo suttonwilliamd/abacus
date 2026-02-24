@@ -102,19 +102,20 @@ class Column:
         self.upper_rest = self.bar_y - int(unit * 0.7)
         self.upper_active = self.bar_y - 35
 
-        # Lower beads - use active_count instead of individual active states
-        self.active_count = 0  # Track contiguous active stack (0 = all beads at bar)
+        # Lower beads - use active_count for contiguous stack
+        # active_count = beads pushed UP toward the bar (value = 1-4)
+        # 0 = all beads pushed DOWN (away from bar) = value 0
+        self.active_count = 0
         self.lowers = []
         
-        # Position lower beads: at program start, they sit ON the separator bar
-        # When active_count increases, they move DOWN (away from bar)
-        lower_section_start = self.bar_y + 15
-        self.lower_rest_base = lower_section_start + (4 * self.spacing)  # Start at bottom when inactive
-        self.lower_active_base = self.bar_y + 10  # Sit on bar when active
+        # At program start: all lower beads pushed DOWN (away from bar) = value 0
+        # When activated: beads move UP toward the bar
+        self.lower_inactive_base = self.bar_y + 150  # Down/away from bar (value 0)
+        self.lower_active_base = self.bar_y + 10     # Up/at the bar (value 4 max)
 
         for i in range(4):
-            # Start all beads at the bar (active position)
-            y = self.lower_active_base - i * self.spacing
+            # Start all beads at bottom (inactive position)
+            y = self.lower_inactive_base + i * self.spacing
             self.lowers.append(Bead(x, y, self.radius, 1))
 
     def update(self):
@@ -146,26 +147,22 @@ class Column:
             self.upper.active = not self.upper.active
             self.upper.target_y = self.upper_active if self.upper.active else self.upper_rest
 
-        # Lower beads - click to push beads away from bar (or bring back)
+        # Lower beads - click to push beads toward/away from bar
         for i, bead in enumerate(self.lowers):
             if bead.is_clicked(pos):
-                if i < self.active_count:
-                    # Clicking on an active (away) bead → bring it back
-                    self.active_count = i
-                else:
-                    # Clicking on an inactive (at bar) bead → push it away
-                    self.active_count = i + 1
+                # Set active_count to i+1 to push beads 0 through i toward the bar
+                self.active_count = i + 1
                 self.update_lower_positions()
                 break
 
     def update_lower_positions(self):
-        # First active_count beads are AWAY from bar (bottom)
-        # Remaining beads are AT the bar (top)
+        # First active_count beads are at the bar (UP)
+        # Remaining beads are at the bottom (DOWN)
         for i in range(self.active_count):
-            self.lowers[i].target_y = self.lower_rest_base - i * self.spacing
+            self.lowers[i].target_y = self.lower_active_base - i * self.spacing
 
         for i in range(self.active_count, 4):
-            self.lowers[i].target_y = self.lower_active_base - (i - self.active_count) * self.spacing
+            self.lowers[i].target_y = self.lower_inactive_base + (i - self.active_count) * self.spacing
 
     def get_value(self):
         total = 0
