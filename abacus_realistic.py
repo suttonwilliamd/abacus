@@ -157,13 +157,16 @@ class Column:
                 break
 
     def update_lower_positions(self):
-        # Active beads (0 to active_count-1): AT the bar (up), stacked vertically
+        # Active beads (0 to active_count-1): AT the bar (up), stacked BELOW each other moving away from bar
+        # Y increases going DOWN, so ADD spacing to move away from bar
         for i in range(self.active_count):
-            self.lowers[i].target_y = self.lower_active_base - i * self.spacing
+            self.lowers[i].target_y = self.lower_active_base + i * self.spacing
 
-        # Inactive beads (active_count to 3): AWAY from bar (down), stacked vertically
+        # Inactive beads (active_count to 3): AWAY from bar (down), stacked below active beads
         for i in range(self.active_count, 4):
-            self.lowers[i].target_y = self.lower_rest_base + (i - self.active_count) * self.spacing
+            # Start after the last active bead
+            start_y = self.lower_active_base + (self.active_count - 1) * self.spacing + self.spacing
+            self.lowers[i].target_y = start_y + (i - self.active_count) * self.spacing
 
     def get_value(self):
         total = 0
