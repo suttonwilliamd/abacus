@@ -94,20 +94,29 @@ class Column:
 
         self.bar_y = int(inner_top + unit * upper_units)
 
-        # Upper bead - add more clearance from bar
+        # Upper bead (value = 5)
+        # When active = touching bar = value 5
+        # When not active = away from bar = value 0
         self.upper_rest = self.bar_y - unit * 0.8
-        self.upper_active = self.bar_y - self.radius - 35  # More clearance when active
+        self.upper_active = self.bar_y - self.radius - 35
         self.upper = Bead(x, self.upper_rest, self.radius, 5)
         self.upper_active_state = False
 
-        # Lower beads - create beads at initial positions
-        self.active_count = 0  # Start with 0 (all beads at bottom)
-        self.lower_active_base = self.bar_y + self.radius + 35  # Position at bar when active
+        # Lower beads (value = 1 each, max 4)
+        # active_count = how many beads are pushed UP toward the bar
+        # 0 = all beads down (away from bar) = value 0
+        # 4 = all beads up (at bar) = value 4
+        self.active_count = 0
+        
+        # Position when at bar (active)
+        self.lower_active_base = self.bar_y + self.radius + 35
+        # Position when away from bar (inactive)
+        self.lower_rest_base = inner_bottom - (3 * self.spacing)
 
         self.lowers = []
         for i in range(4):
-            # Start all beads at the bottom (inactive position)
-            y = self.lower_active_base + (3 * self.spacing)  # Start at bottom
+            # Start all beads at the bottom (inactive/away from bar)
+            y = self.lower_rest_base + i * self.spacing
             self.lowers.append(Bead(x, y, self.radius, 1))
 
     def update(self):
@@ -134,32 +143,27 @@ class Column:
             bead.draw(surface)
 
     def handle_click(self, pos):
-        # Upper bead
+        # Upper bead - toggle between touching/away from bar
         if self.upper.is_clicked(pos):
             self.upper_active_state = not self.upper_active_state
             self.upper.target_y = self.upper_active if self.upper_active_state else self.upper_rest
 
         # Lower beads
+        # Click on bead i -> push beads 0 through i toward the bar
         for i, bead in enumerate(self.lowers):
             if bead.is_clicked(pos):
-                if i < self.active_count:
-                    self.active_count = i
-                else:
-                    self.active_count = i + 1
+                self.active_count = i + 1
                 self.update_lower_positions()
                 break
 
     def update_lower_positions(self):
-        # Active stack (tight to bar) - beads 0 to active_count-1
+        # Active beads (0 to active_count-1): AT the bar (up)
         for i in range(self.active_count):
-            self.lowers[i].target_y = self.lower_active_base + i * self.spacing
+            self.lowers[i].target_y = self.lower_active_base
 
-        # Rest stack - beads active_count to 3
-        # Position them below ALL active beads to avoid overlap
+        # Inactive beads (active_count to 3): AWAY from bar (down)
         for i in range(self.active_count, 4):
-            # Start after the last active bead
-            start_y = self.lower_active_base + (self.active_count * self.spacing)
-            self.lowers[i].target_y = start_y + (i - self.active_count) * self.spacing
+            self.lowers[i].target_y = self.lower_rest_base + (i - self.active_count) * self.spacing
 
     def get_value(self):
         total = 0
