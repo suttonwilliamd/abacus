@@ -94,15 +94,15 @@ class Column:
 
         self.bar_y = int(inner_top + unit * upper_units)
 
-        # Upper bead
+        # Upper bead - add more clearance from bar
         self.upper_rest = self.bar_y - unit * 0.8
-        self.upper_active = self.bar_y - self.radius - 8
+        self.upper_active = self.bar_y - self.radius - 20  # More clearance
         self.upper = Bead(x, self.upper_rest, self.radius, 5)
         self.upper_active_state = False
 
-        # Lower beads
+        # Lower beads - add more clearance from bar
         self.active_count = 0
-        self.lower_active_base = self.bar_y + self.radius + 8
+        self.lower_active_base = self.bar_y + self.radius + 20  # More clearance
         self.lower_rest_base = inner_bottom - (3 * self.spacing)
 
         self.lowers = []
