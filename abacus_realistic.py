@@ -100,14 +100,14 @@ class Column:
         self.upper = Bead(x, self.upper_rest, self.radius, 5)
         self.upper_active_state = False
 
-        # Lower beads - add more clearance from bar
-        self.active_count = 0
-        self.lower_active_base = self.bar_y + self.radius + 35  # More clearance when active
-        # lower_rest_base is now calculated dynamically in update_lower_positions
+        # Lower beads - create beads at initial positions
+        self.active_count = 0  # Start with 0 (all beads at bottom)
+        self.lower_active_base = self.bar_y + self.radius + 35  # Position at bar when active
 
         self.lowers = []
         for i in range(4):
-            y = self.lower_rest_base + i * self.spacing
+            # Start all beads at the bottom (inactive position)
+            y = self.lower_active_base + (3 * self.spacing)  # Start at bottom
             self.lowers.append(Bead(x, y, self.radius, 1))
 
     def update(self):
