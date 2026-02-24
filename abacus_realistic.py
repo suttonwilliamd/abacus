@@ -48,6 +48,7 @@ class Bead:
         self.target_y = y
         self.radius = radius
         self.value = value
+        self.active = False  # Only used for upper bead
 
     def update(self):
         # Smooth slide animation
