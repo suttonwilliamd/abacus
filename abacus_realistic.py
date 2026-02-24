@@ -84,13 +84,22 @@ class Bead:
 class Column:
     def __init__(self, x):
         self.x = x
-        self.bar_y = HEIGHT // 2
+        
+        # Calculate bar position with correct 1:4 ratio (upper:lower)
+        inner_top = 110
+        inner_bottom = HEIGHT - 110
+        total_bead_space = inner_bottom - inner_top
+        
+        # 1 unit for upper beads, 4 units for lower beads
+        unit = total_bead_space / 5
+        self.bar_y = int(inner_top + unit)
+        
         self.radius = 22
         self.spacing = 48
 
         # Upper bead (still uses active state)
-        self.upper = Bead(x, self.bar_y - 130, self.radius, 5)
-        self.upper_rest = self.bar_y - 130
+        self.upper = Bead(x, self.bar_y - int(unit * 0.7), self.radius, 5)
+        self.upper_rest = self.bar_y - int(unit * 0.7)
         self.upper_active = self.bar_y - 35
 
         # Lower beads - use active_count instead of individual active states
