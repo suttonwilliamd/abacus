@@ -48,7 +48,6 @@ class Bead:
         self.target_y = y
         self.radius = radius
         self.value = value
-        self.active = False
 
     def update(self):
         # Smooth slide animation
@@ -88,12 +87,13 @@ class Column:
         self.radius = 22
         self.spacing = 48
 
-        # Upper bead
+        # Upper bead (still uses active state)
         self.upper = Bead(x, self.bar_y - 130, self.radius, 5)
         self.upper_rest = self.bar_y - 130
         self.upper_active = self.bar_y - 35
 
-        # Lower beads
+        # Lower beads - use active_count instead of individual active states
+        self.active_count = 0  # Track contiguous active stack
         self.lowers = []
         self.lower_rest_base = self.bar_y + 50
         self.lower_active_base = self.bar_y - 20
@@ -131,34 +131,32 @@ class Column:
             self.upper.active = not self.upper.active
             self.upper.target_y = self.upper_active if self.upper.active else self.upper_rest
 
-        # Lower beads
+        # Lower beads - use active_count for contiguous stack
         for i, bead in enumerate(self.lowers):
             if bead.is_clicked(pos):
-                if bead.active:
-                    # deactivate from this upward
-                    for j in range(i, 4):
-                        self.lowers[j].active = False
+                if i < self.active_count:
+                    # Clicking in active region → reduce count
+                    self.active_count = i
                 else:
-                    for j in range(0, i + 1):
-                        self.lowers[j].active = True
+                    # Clicking in inactive region → increase count
+                    self.active_count = i + 1
                 self.update_lower_positions()
+                break
 
     def update_lower_positions(self):
-        active_count = sum(b.active for b in self.lowers)
-
-        # Active stack (tight to bar)
-        for i in range(active_count):
+        # Active beads (tight against bar)
+        for i in range(self.active_count):
             self.lowers[i].target_y = self.lower_active_base - i * self.spacing
 
-        # Inactive stack (bottom)
-        for i in range(active_count, 4):
-            self.lowers[i].target_y = self.lower_rest_base + (i - active_count) * self.spacing
+        # Inactive beads (tight at bottom)
+        for i in range(self.active_count, 4):
+            self.lowers[i].target_y = self.lower_rest_base + (i - self.active_count) * self.spacing
 
     def get_value(self):
         total = 0
         if self.upper.active:
             total += 5
-        total += sum(b.active for b in self.lowers)
+        total += self.active_count
         return total
 
 
