@@ -1,16 +1,21 @@
 # Abacus
 
-Interactive abacus visualization for the BitByBit game.
-
-This contains the era-specific accumulator rendering code for Abacus Era (Era 0) and Mechanical Era (Era 1) visualizations.
+Interactive realistic Soroban-style abacus visualization.
 
 ## Features
 
-- Abacus-style rendering with wooden frame and sliding beads
-- Mechanical gear-style rendering with rotating gears and lever
-- Interactive - click the visualization to add resources
-- Pulsing animations and visual feedback
+- Realistic wooden frame
+- Clickable beads (upper = 5, lower = 1)
+- Live number counter
+- Traditional soroban bead logic
 
-## Usage
+## Run
 
-This is meant to be integrated into the BitByBit game project.
+```bash
+pip install pygame
+python abacus.py
+```
+
+## Credits
+
+Based on code from Gippity (Claude Code)
