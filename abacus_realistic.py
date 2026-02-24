@@ -105,8 +105,12 @@ class Column:
         # Lower beads - use active_count instead of individual active states
         self.active_count = 0  # Track contiguous active stack
         self.lowers = []
-        self.lower_rest_base = self.bar_y + 50
-        self.lower_active_base = self.bar_y - 20
+        
+        # Position lower beads relative to the new bar position
+        # Give them proper spacing below the bar
+        lower_section_start = self.bar_y + 15
+        self.lower_rest_base = lower_section_start
+        self.lower_active_base = self.bar_y - 10
 
         for i in range(4):
             y = self.lower_rest_base + i * self.spacing
