@@ -103,7 +103,7 @@ class Column:
         # Lower beads - add more clearance from bar
         self.active_count = 0
         self.lower_active_base = self.bar_y + self.radius + 35  # More clearance when active
-        self.lower_rest_base = inner_bottom - (3 * self.spacing)
+        # lower_rest_base is now calculated dynamically in update_lower_positions
 
         self.lowers = []
         for i in range(4):
@@ -150,15 +150,16 @@ class Column:
                 break
 
     def update_lower_positions(self):
-        # Active stack (tight to bar)
+        # Active stack (tight to bar) - beads 0 to active_count-1
         for i in range(self.active_count):
             self.lowers[i].target_y = self.lower_active_base + i * self.spacing
 
-        # Rest stack (bottom)
+        # Rest stack - beads active_count to 3
+        # Position them below ALL active beads to avoid overlap
         for i in range(self.active_count, 4):
-            self.lowers[i].target_y = (
-                self.lower_rest_base + (i - self.active_count) * self.spacing
-            )
+            # Start after the last active bead
+            start_y = self.lower_active_base + (self.active_count * self.spacing)
+            self.lowers[i].target_y = start_y + (i - self.active_count) * self.spacing
 
     def get_value(self):
         total = 0
