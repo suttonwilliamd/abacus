@@ -19,7 +19,8 @@ py -3.13 -m venv .venv
 Use `py -3.11` instead if that is your installed version. No activation or
 PowerShell execution-policy changes are necessary. On Linux, use
 `python3 -m venv .venv`, then `.venv/bin/python` for the same commands.
-Runtime dependency: pygame 2.6.1 (pinned; locally verified on Linux Python 3.13).
+Runtime dependency: pygame 2.6.1 (pinned; tested on hosted Ubuntu/Windows
+with Python 3.11 and 3.13).
 
 ## Controls
 
@@ -41,6 +42,10 @@ value; the large counter shows their sum, with no hidden accumulator.
 
 ## Tests and finite rendering smoke
 
+Use a separate PowerShell session for this headless smoke. The SDL environment
+settings below last for that shell; close it afterward and use your normal
+session for the interactive app, otherwise it will not display a real window.
+
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 $env:SDL_VIDEODRIVER = "dummy"
@@ -58,16 +63,21 @@ points initialize only display and font, not unused audio/mixer subsystems.
 Lifecycle regressions observe live display/font with mixer uninitialized and
 verify cleanup even when display or font setup partially fails.
 
-CI is configured for standard Ubuntu/Windows runners and Python 3.11/3.13,
-with bounded jobs and seven-day synthetic PNG/JSON artifacts. Configuration is
-not proof those hosted jobs have run. SDL dummy rendering is not physical
-device or interactive Windows acceptance.
+The canonical code passed all four Ubuntu/Windows × Python 3.11/3.13 jobs in
+[actual integration run 40254672410](https://github.com/suttonwilliamd/abacus/actions/runs/40254672410).
+All 16 PNGs from [PR run 40251673079](https://github.com/suttonwilliamd/abacus/actions/runs/40251673079)
+were downloaded and checked against their manifests; the eight Windows renders
+also received design review. Jobs are bounded, with seven-day synthetic
+PNG/JSON artifacts. Windows renders match each other across these Python
+versions, but are not pixel-identical to Linux. SDL dummy rendering is not
+physical-device, DPI/scaling, screen-reader or interactive Windows acceptance.
 
 ## Scope and historical experiments
 
-`abacus_baby.py`, `abacus_realistic.py`, and `accumulator.py` are **historical
-experiments**, unchanged and not covered by the canonical app's correctness
-claims or tests. Run `abacus.py` for the corrected Soroban.
+The repository retains `abacus_baby.py`, `abacus_realistic.py`, and
+`accumulator.py` as **historical experiments**, unchanged and not covered by
+the canonical app's correctness claims or tests. They are excluded from the
+canonical source-release archive. Run `abacus.py` for the corrected Soroban.
 
 This is a fixed-size 1000×740 desktop window, not a responsive/mobile app,
 training game, standalone EXE, or OS screen-reader-accessible UI. Small displays
