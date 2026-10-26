@@ -174,8 +174,9 @@ def render(surface, model):
 
 def main():
     import pygame
-    pygame.init()
     try:
+        pygame.display.init()
+        pygame.font.init()
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption('Soroban - Six Places')
         clock = pygame.time.Clock()

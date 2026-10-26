@@ -1,6 +1,7 @@
 import itertools
 import subprocess
 import sys
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -137,10 +138,19 @@ class EventTests(unittest.TestCase):
         from abacus import main
         for event in (pygame.event.Event(pygame.QUIT),
                       pygame.event.Event(pygame.KEYDOWN, key=pygame.K_ESCAPE)):
-            with patch.object(pygame.event, 'get', return_value=[event]):
+            def observe_live():
+                self.assertTrue(pygame.display.get_init())
+                self.assertTrue(pygame.font.get_init())
+                self.assertIsNone(pygame.mixer.get_init())
+                return [event]
+            with patch.object(pygame, 'init', side_effect=AssertionError('broad init')), \
+                    patch.object(pygame.event, 'get', side_effect=observe_live) as events:
                 main()
+                events.assert_called_once()
             self.assertFalse(pygame.get_init())
             self.assertFalse(pygame.display.get_init())
+            self.assertFalse(pygame.font.get_init())
+            self.assertIsNone(pygame.mixer.get_init())
 
     def test_mouse_and_ignored_inputs(self):
         model = Abacus()
@@ -161,6 +171,48 @@ class EventTests(unittest.TestCase):
         handle_event(model, pygame.event.Event(pygame.MOUSEBUTTONDOWN, pos=(0,0), button=1))
         self.key(model, pygame.K_a)
         self.assertEqual(model.total, before)
+
+
+class LifecycleTests(unittest.TestCase):
+    def assert_clean(self):
+        self.assertFalse(pygame.display.get_init())
+        self.assertFalse(pygame.font.get_init())
+        self.assertIsNone(pygame.mixer.get_init())
+
+    def test_smoke_live_subsystems(self):
+        import render_smoke
+        original = render_smoke.rendered_centers
+        def observe_live(*args, **kwargs):
+            self.assertTrue(pygame.display.get_init())
+            self.assertTrue(pygame.font.get_init())
+            self.assertIsNone(pygame.mixer.get_init())
+            return original(*args, **kwargs)
+        with tempfile.TemporaryDirectory() as output, \
+                patch.object(sys, 'argv', ['render_smoke.py', '--output', output]), \
+                patch.object(pygame, 'init', side_effect=AssertionError('broad init')), \
+                patch.object(render_smoke, 'rendered_centers', side_effect=observe_live) as observed:
+            render_smoke.main()
+            self.assertEqual(observed.call_count, 2)
+        self.assert_clean()
+
+    def test_partial_setup_failures_clean_both_entrypoints(self):
+        import abacus
+        import render_smoke
+        for entry in (abacus.main, render_smoke.main):
+            for subsystem in (pygame.display, pygame.font):
+                with self.subTest(entry=entry.__module__, subsystem=subsystem.__name__):
+                    original_init = subsystem.init
+                    def fail_after_init():
+                        original_init()
+                        self.assertTrue(subsystem.get_init())
+                        raise RuntimeError('partial setup failure')
+                    with tempfile.TemporaryDirectory() as output, \
+                            patch.object(sys, 'argv', ['smoke', '--output', output]), \
+                            patch.object(pygame, 'init', side_effect=AssertionError('broad init')), \
+                            patch.object(subsystem, 'init', side_effect=fail_after_init):
+                        with self.assertRaisesRegex(RuntimeError, 'partial setup failure'):
+                            entry()
+                    self.assert_clean()
 
 
 if __name__ == '__main__':

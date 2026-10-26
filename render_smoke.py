@@ -40,8 +40,9 @@ def main():
     parser.add_argument('--output', type=Path, default=Path('artifacts'))
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
-    pygame.init()
     try:
+        pygame.display.init()
+        pygame.font.init()
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         model = Abacus()
         centers = rendered_centers(screen, model)

@@ -53,7 +53,10 @@ The smoke creates four **actual pygame-rendered** PNGs (zero, four, nine,
 events and regresses the former overlapping-hit sequence using centers observed
 from the renderer. It is finite and does not launch the interactive loop.
 Unit tests exhaust local digit geometry and every cross-column state pair,
-all lower-click transitions, place totals, bounds and import safety.
+all lower-click transitions, place totals, bounds and import safety. Both entry
+points initialize only display and font, not unused audio/mixer subsystems.
+Lifecycle regressions observe live display/font with mixer uninitialized and
+verify cleanup even when display or font setup partially fails.
 
 CI is configured for standard Ubuntu/Windows runners and Python 3.11/3.13,
 with bounded jobs and seven-day synthetic PNG/JSON artifacts. Configuration is
